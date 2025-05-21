@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monitoraggio Rete - DRU_NMAP_Harpcode</title>
+    <style>
+        body { background-color: black; color: green; font-family: monospace; }
+        .container { display: flex; justify-content: space-between; padding: 20px; }
+        .left-box { width: 70%; padding: 10px; border: 2px solid lime; }
+        .right-box { width: 25%; padding: 10px; border: 2px solid red; color: red; font-size: 18px; font-weight: bold; text-align: center; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { border: 1px solid lime; padding: 10px; text-align: left; }
+        h2 { color: lime; text-align: center; }
+    </style>
+    <script>
+        function fetchData() {
+            fetch('/data').then(response => response.json()).then(data => {
+                document.getElementById("devices").innerHTML = JSON.stringify(data.devices, null, 2);
+                document.getElementById("bandwidth").innerHTML = 
+                    "Inviati: " + data.bandwidth.sent.toFixed(2) + " KB | Ricevuti: " + data.bandwidth.recv.toFixed(2) + " KB";
+
+                let conflictList = document.getElementById("conflicts");
+                conflictList.innerHTML = "";
+
+                if (Object.keys(data.conflicts).length === 0) {
+                    conflictList.innerHTML = "<p>Nessun conflitto IP rilevato ✅</p>";
+                } else {
+                    let table = "<table><tr><th>MAC Address</th><th>IP in conflitto</th></tr>";
+                    for (let mac in data.conflicts) {
+                        table += `<tr><td>${mac}</td><td>${data.conflicts[mac].join(", ")}</td></tr>`;
+                    }
+                    table += "</table>";
+                    conflictList.innerHTML = table;
+                }
+            });
+        }
+        setInterval(fetchData, 5000);
+    </script>
+</head>
+<body>
+    <h1 style="text-align: center;">🖧 Monitoraggio LAN - DRU_NMAP_Harpcode 🖧</h1>
+    
+    <div class="container">
+        <!-- Mappa Dispositivi e Consumo Banda -->
+        <div class="left-box">
+            <h2>💾 Mappa Dispositivi 💾</h2>
+            <pre id="devices"></pre>
+
+            <h2>📡 Consumo Banda 📡</h2>
+            <p id="bandwidth"></p>
+        </div>
+
+        <!-- Conflitti IP ben visibili in una colonna a destra -->
+        <div class="right-box">
+            <h2>⚠️ Conflitti IP ⚠️</h2>
+            <div id="conflicts"></div>
+        </div>
+    </div>
+</body>
+</html>
